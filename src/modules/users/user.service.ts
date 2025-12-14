@@ -28,7 +28,10 @@ export class UserService {
     }
 
     const configuredSalt = Number(process.env.HASH_SALT ?? 10);
-    const saltRounds = Number.isFinite(configuredSalt) && configuredSalt > 0 ? configuredSalt : 10;
+    const saltRounds =
+      Number.isFinite(configuredSalt) && configuredSalt > 0
+        ? configuredSalt
+        : 10;
     const password = await bcrypt.hash(dto.password, saltRounds);
 
     const user = this.userRepository.create({
@@ -64,6 +67,15 @@ export class UserService {
     }
 
     if (dto.email !== undefined) {
+      // Verificar se o email já está sendo usado por outro usuário
+      const existingUser = await this.userRepository.findOne({
+        where: { email: dto.email },
+      });
+
+      if (existingUser && existingUser.id !== id) {
+        throw new ConflictException('E-mail já cadastrado');
+      }
+
       target.email = dto.email;
     }
 

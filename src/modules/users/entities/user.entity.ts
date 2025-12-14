@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,7 +20,7 @@ export class User {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Exclude()
@@ -28,6 +29,9 @@ export class User {
 
   @OneToMany(() => List, (list) => list.owner)
   lists: List[];
+
+  @ManyToMany(() => List, (list) => list.participants)
+  participatingLists: List[];
 
   @OneToMany(() => ListItem, (item) => item.assignedTo)
   assignedItems: ListItem[];

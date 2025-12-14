@@ -4,10 +4,12 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  JoinTable,
 } from 'typeorm';
 import { ListItem } from '../../list-items/entities/list-item.entity';
 
@@ -24,6 +26,16 @@ export class List {
 
   @ManyToOne(() => User, (user) => user.lists, { onDelete: 'CASCADE' })
   owner: User;
+
+  @ManyToMany(() => User, (user) => user.participatingLists, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable({
+    name: 'user_list',
+    joinColumn: { name: 'listId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' },
+  })
+  participants: User[];
 
   @OneToMany(() => ListItem, (item) => item.list)
   items: ListItem[];

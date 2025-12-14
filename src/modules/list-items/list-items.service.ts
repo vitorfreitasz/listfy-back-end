@@ -114,7 +114,7 @@ export class ListItemsService {
   private async getListOrFail(listId: number, user: User) {
     const list = await this.listRepository.findOne({
       where: { id: listId },
-      relations: ['owner'],
+      relations: ['owner', 'participants'],
     });
 
     if (!list) {
@@ -123,8 +123,10 @@ export class ListItemsService {
 
     const ownerId = Number(list.owner?.id);
     const requesterId = Number(user?.id);
+    const isOwner = ownerId === requesterId;
+    const isParticipant = list.participants?.some((p) => p.id === requesterId);
 
-    if (!ownerId || ownerId !== requesterId) {
+    if (!isOwner && !isParticipant) {
       throw new ForbiddenException('Acesso negado');
     }
 

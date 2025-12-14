@@ -19,17 +19,16 @@ export class AuthService {
   ) {}
 
   async login(
-    username: string,
+    email: string,
     password: string,
   ): Promise<{ name: string; access_token: string }> {
-
     const user = await this.userRepository.findOne({
-      where: { name: username },
+      where: { email: email },
     });
 
     if (!user) {
       throw new UnauthorizedException({
-        message: 'Usuário ou senha incorretos.',
+        message: 'Email ou senha incorretos.',
       });
     }
 
@@ -53,7 +52,7 @@ export class AuthService {
     username: string,
     email: string,
     password: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ name: string; access_token: string }> {
     try {
       const existingUser = await this.userRepository.findOne({
         where: [{ email }],
@@ -64,13 +63,16 @@ export class AuthService {
       }
 
       const configuredSalt = Number(process.env.HASH_SALT ?? 10);
-      const saltRounds = Number.isFinite(configuredSalt) && configuredSalt > 0 ? configuredSalt : 10;
+      const saltRounds =
+        Number.isFinite(configuredSalt) && configuredSalt > 0
+          ? configuredSalt
+          : 10;
       const hash = await bcrypt.hash(password, saltRounds);
 
       const user = this.userRepository.create({
         name: username,
         password: hash,
-        email,
+        email: email,
       });
 
       await this.userRepository.save(user);
@@ -82,6 +84,7 @@ export class AuthService {
 
       const token = await this.jwtService.signAsync(payload);
       return {
+        name: user.name,
         access_token: token,
       };
     } catch (error) {

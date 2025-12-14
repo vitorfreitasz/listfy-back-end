@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { UpdateListDto } from './dto/update-list.dto';
 import { CreateListDto } from './dto/create-list.dto';
+import { AddParticipantDto } from './dto/add-participant.dto';
+import { RemoveParticipantDto } from './dto/remove-participant.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/decorators/get-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -29,6 +31,11 @@ export class ListController {
     return this.listService.findAll(user);
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: number, @GetUser() user: User) {
+    return this.listService.findOne(id, user);
+  }
+
   @Put(':id')
   async update(
     @Param('id') id: number,
@@ -41,5 +48,28 @@ export class ListController {
   @Delete(':id')
   async remove(@Param('id') id: number, @GetUser() user: User) {
     return this.listService.remove(id, user);
+  }
+
+  @Post(':id/participants')
+  async addParticipant(
+    @Param('id') id: number,
+    @Body() dto: AddParticipantDto,
+    @GetUser() user: User,
+  ) {
+    return this.listService.addParticipant(id, dto, user);
+  }
+
+  @Delete(':id/participants')
+  async removeParticipant(
+    @Param('id') id: number,
+    @Body() dto: RemoveParticipantDto,
+    @GetUser() user: User,
+  ) {
+    return this.listService.removeParticipant(id, dto, user);
+  }
+
+  @Get(':id/participants')
+  async getParticipants(@Param('id') id: number, @GetUser() user: User) {
+    return this.listService.getParticipants(id, user);
   }
 }

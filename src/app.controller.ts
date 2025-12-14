@@ -11,4 +11,9 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('/health/auth')
+  getAuth(): string {
+    return this.appService.isAuth();
+  }
 }
