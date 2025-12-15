@@ -26,6 +26,8 @@ import { ListItemsModule } from './modules/list-items/list-items.module';
         const host = configService.get<string>('TYPEORM_HOST');
         const port = configService.get<number>('TYPEORM_PORT');
 
+        const sslEnabled = configService.get<string>('TYPEORM_SSL') === 'true';
+
         return {
           type: 'postgres',
           host,
@@ -41,6 +43,11 @@ import { ListItemsModule } from './modules/list-items/list-items.module';
           cli: {
             migrationsDir: 'src/database/migrations',
           },
+          ssl: sslEnabled
+            ? {
+                rejectUnauthorized: false,
+              }
+            : false,
         };
       },
     }),
