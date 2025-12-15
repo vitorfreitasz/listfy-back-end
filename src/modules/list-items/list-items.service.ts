@@ -10,7 +10,6 @@ import { ListItem } from './entities/list-item.entity';
 import { List } from '../lists/entities/list.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateListItemDto } from './dto/create-list-item.dto';
-import { AssignListItemDto } from './dto/assign-list-item.dto';
 import { EditListItemDto } from './dto/edit-list-item.dto';
 
 @Injectable()
@@ -44,12 +43,7 @@ export class ListItemsService {
     return this.listItemRepository.save(item);
   }
 
-  async assign(
-    listId: number,
-    itemId: number,
-    dto: AssignListItemDto,
-    user: User,
-  ) {
+  async assign(listId: number, itemId: number, user: User) {
     const list = await this.getListOrFail(listId, user);
 
     const item = await this.listItemRepository.findOne({
@@ -65,15 +59,36 @@ export class ListItemsService {
       throw new ConflictException('Item já atribuído a outro usuário');
     }
 
-    const assignee = await this.userRepository.findOne({
-      where: { id: dto.userId },
+    // Buscar o usuário completo do banco, pois o user do decorator é apenas parcial
+    const fullUser = await this.userRepository.findOne({
+      where: { id: user.id },
     });
 
-    if (!assignee) {
+    if (!fullUser) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    item.assignedTo = assignee;
+    item.assignedTo = fullUser;
+    return this.listItemRepository.save(item);
+  }
+
+  async unassign(listId: number, itemId: number, user: User) {
+    const list = await this.getListOrFail(listId, user);
+
+    const item = await this.listItemRepository.findOne({
+      where: { id: itemId, list: { id: listId } },
+      relations: ['assignedTo'],
+    });
+
+    if (!item) {
+      throw new NotFoundException('Item não encontrado');
+    }
+
+    if (!item.assignedTo) {
+      throw new ConflictException('Item não está atribuído a nenhum usuário');
+    }
+
+    item.assignedTo = null;
     return this.listItemRepository.save(item);
   }
 
